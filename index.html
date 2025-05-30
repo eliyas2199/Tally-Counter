@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="bn"> <!-- অথবা 'en', আপনার ডিফল্ট ভাষা অনুযায়ী -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title data-lang-key="pageTitle">Tally Counter</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Drawer Menu Icon -->
+    <button id="drawer-menu-icon" class="drawer-menu-icon">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Left Side Drawer -->
+    <div id="side-drawer" class="side-drawer">
+        <div class="drawer-header">
+            <h3 data-lang-key="drawerTitle">App Features</h3>
+            <button id="close-drawer-btn" class="close-drawer-btn">×</button>
+        </div>
+        <ul class="drawer-menu-list">
+            <li class="drawer-menu-item" id="drawer-stats-chart">
+                <i class="fas fa-chart-line"></i> <span data-lang-key="drawerStats">Daily/Weekly Stats</span>
+            </li>
+            <li class="drawer-menu-item" id="drawer-goal-tracking">
+                <i class="fas fa-bullseye"></i> <span data-lang-key="drawerGoal">Goal Tracking</span>
+            </li>
+            <li class="drawer-menu-item" id="drawer-gesture-toggle-item">
+                <i class="fas fa-hand-paper"></i> <span data-lang-key="drawerGesture">Gesture Support</span>
+                <label class="switch drawer-switch">
+                    <input type="checkbox" id="gesture-support-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </li>
+            <li class="drawer-menu-item" id="drawer-cloud-backup">
+                <i class="fab fa-google-drive"></i> <span data-lang-key="drawerCloudBackup">Cloud Backup (Google)</span>
+            </li>
+        </ul>
+    </div>
+    <div id="drawer-overlay" class="drawer-overlay hidden"></div>
+
+
+    <div id="page-container">
+        <!-- Main Tally Counter Page -->
+        <div id="counter-page" class="page active-page">
+            <div id="goal-progress-container" class="goal-progress-container hidden">
+                <span data-lang-key="goalLabel">Goal:</span> <span id="goal-value-display">0</span>
+                <div class="progress-bar-container">
+                    <div id="goal-progress-bar" class="progress-bar"></div>
+                </div>
+                <span id="goal-percentage-display">0%</span>
+            </div>
+            <div class="app-container">
+                <div class="title" data-lang-key="appTitle">TALLY COUNTER <br>تسبيح</div>
+                <div class="display-area">
+                    <span id="count-display">0</span>
+                </div>
+                <div class="controls-area">
+                    <div class="button-group">
+                        <button id="count-button" class="circle-button main-action-button"></button>
+                        <label for="count-button" data-lang-key="countBtnLabel">COUNT</label>
+                    </div>
+                    <div class="button-group">
+                        <button id="reset-button" class="circle-button secondary-action-button"></button>
+                        <label for="reset-button" data-lang-key="resetBtnLabel">RESET</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History/Saved Counts Page -->
+        <div id="history-page" class="page">
+            <h2 data-lang-key="historyTitle">Saved Counts</h2>
+            <div id="saved-counts-list">
+                <!-- Saved items will be populated here by JS -->
+            </div>
+        </div>
+
+        <!-- Stats Chart Modal/Page (can be shown via drawer) -->
+        <div id="stats-modal" class="custom-page-modal hidden">
+            <div class="custom-page-modal-content">
+                <div class="custom-page-modal-header">
+                    <h3 data-lang-key="statsModalTitle">Counter Statistics</h3>
+                    <button class="close-custom-page-modal-btn" data-target="stats-modal">×</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="usage-chart"></canvas>
+                </div>
+                <p style="text-align:center; font-size: 0.9em; color: #aaa;" data-lang-key="statsInfo">Basic daily usage based on saved history timestamps.</p>
+            </div>
+        </div>
+
+        <!-- Goal Setting Modal (can be shown via drawer) -->
+        <div id="goal-modal" class="custom-page-modal hidden">
+            <div class="custom-page-modal-content">
+                <div class="custom-page-modal-header">
+                    <h3 data-lang-key="goalModalTitle">Set Counting Goal</h3>
+                    <button class="close-custom-page-modal-btn" data-target="goal-modal">×</button>
+                </div>
+                <div class="setting-item" style="flex-direction: column; align-items: stretch;">
+                    <label for="goal-input" data-lang-key="goalInputLabel">Enter your goal (e.g., 100):</label>
+                    <input type="number" id="goal-input" class="modal-input" placeholder="0" min="0">
+                </div>
+                 <div class="setting-item">
+                    <label for="enable-goal-toggle" data-lang-key="enableGoalLabel">Enable Goal Tracking:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enable-goal-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button id="set-goal-button" class="action-button" data-lang-key="setGoalBtn">Set Goal</button>
+            </div>
+        </div>
+    </div> <!-- End of page-container -->
+
+    <!-- Settings Panel (remains a pop-up) -->
+    <div id="settings-panel" class="settings-panel hidden">
+        <h3 data-lang-key="settingsPanelTitle">সেটিংস</h3>
+        <div class="setting-item">
+            <label for="count-button-color" data-lang-key="settingCountBtnColor">কাউন্ট বাটন রঙ:</label>
+            <input type="color" id="count-button-color">
+        </div>
+        <div class="setting-item">
+            <label for="reset-button-color" data-lang-key="settingResetBtnColor">রিসেট বাটন রঙ:</label>
+            <input type="color" id="reset-button-color">
+        </div>
+        <div class="setting-item">
+            <label for="number-color" data-lang-key="settingNumberColor">সংখ্যা প্রদর্শন রঙ:</label>
+            <input type="color" id="number-color">
+        </div>
+        <div class="setting-item">
+            <label for="app-container-color" data-lang-key="settingAppContainerColor">অ্যাপ কন্টেইনার রঙ:</label>
+            <input type="color" id="app-container-color">
+        </div>
+        <div class="setting-item">
+            <label for="neon-effect-toggle" data-lang-key="settingNeonEffect">ডিসপ্লে নিয়ন ইফেক্ট:</label>
+            <select id="neon-effect-toggle">
+                <option value="off" data-lang-key="optionOff">বন্ধ</option>
+                <option value="on" data-lang-key="optionOn">সক্রিয়</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <label for="neon-color" data-lang-key="settingNeonColor">ডিসপ্লে নিয়ন রঙ:</label>
+            <input type="color" id="neon-color">
+        </div>
+        <div class="setting-item">
+            <label for="language-select" data-lang-key="settingLanguage">সংখ্যার ভাষা:</label>
+            <select id="language-select">
+                <option value="en">English</option>
+                <option value="bn">বাংলা</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <label for="background-theme-select" data-lang-key="settingBgTheme">মূল ব্যাকগ্রাউন্ড থিম:</label>
+            <select id="background-theme-select">
+                <option value="default" data-lang-key="themeDefault">ডিফল্ট</option>
+                <option value="dark" data-lang-key="themeDark">ডার্ক</option>
+                <option value="white" data-lang-key="themeWhite">হোয়াইট</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <label for="sound-toggle" data-lang-key="settingCountSound">কাউন্ট সাউন্ড:</label>
+            <label class="switch">
+                <input type="checkbox" id="sound-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="setting-item">
+            <label for="vibration-toggle" data-lang-key="settingCountVibration">কাউন্ট ভাইব্রেশন (মোবাইল):</label>
+            <label class="switch">
+                <input type="checkbox" id="vibration-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <button id="apply-settings-button" class="action-button" data-lang-key="applySettingsBtn">প্রয়োগ ও বন্ধ করুন</button>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <button id="nav-home" class="nav-button active-nav">🏠<span class="nav-label" data-lang-key="navHome">Home</span></button>
+        <button id="nav-settings" class="nav-button">⚙️<span class="nav-label" data-lang-key="navSettings">সেটিংস</span></button>
+        <button id="nav-saved" class="nav-button">💾<span class="nav-label" data-lang-key="navSaved">Saved</span></button>
+    </div>
+
+    <!-- Custom Modal (used for alerts, confirms, prompts) -->
+    <div id="custom-modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-title" data-lang-key="modalDefaultTitle">Modal Title</h3>
+            <p id="modal-message">Modal message goes here.</p>
+            <input type="text" id="modal-input-field" class="modal-input hidden" placeholder="Enter value">
+            <div class="modal-actions">
+                <button id="modal-confirm-button" class="action-button" data-lang-key="modalConfirm">Confirm</button>
+                <button id="modal-cancel-button" class="secondary-action-button hidden" data-lang-key="modalCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="click-sound" src="sounds/click.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
